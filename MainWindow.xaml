@@ -1,0 +1,34 @@
+﻿<Window x:Class="ClientApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientApp"
+        mc:Ignorable="d"
+        Background="#FF606060"
+        Title="MainWindow" Width="1024" Height="768" MinWidth="1024" MinHeight="768">
+    <DockPanel>
+        <Grid DockPanel.Dock="Left" Margin="5" Background="#FF404040">
+            <Grid DockPanel.Dock="Left" Margin="5" Background="#FF202020">
+                <Canvas DockPanel.Dock="Left" Background="Black" Name = "field"  Width="750" VerticalAlignment="Stretch" Margin="5" MouseDown="FieldClick">
+                </Canvas>
+            </Grid>
+        </Grid>
+        <DockPanel  DockPanel.Dock="Right" HorizontalAlignment="Stretch" Margin="5" Background="#FF101010">
+            <Button DockPanel.Dock="Top" Name ="CONNETCT"  Background="Black" TextElement.Foreground="#00ff00" Content="CONNETCT" Click="RUN_Btn"/>
+            <ComboBox DockPanel.Dock="Top" Name="Structure" Background="Black" TextElement.Foreground="Black" VerticalAlignment="Top">
+                <TextBlock>Glider</TextBlock>
+            </ComboBox>
+            <StackPanel RadioButton.Checked="RadioButton_Click">
+                <RadioButton GroupName="GliderDir" Content="NW" IsChecked="True" TextElement.Foreground="#00ff00"/>
+                <RadioButton GroupName="GliderDir" Content="NE" TextElement.Foreground="#00ff00"/>
+                <RadioButton GroupName="GliderDir" Content="SE" TextElement.Foreground="#00ff00"/>
+                <RadioButton GroupName="GliderDir" Content="SW" TextElement.Foreground="#00ff00"/>
+            </StackPanel>
+            <StackPanel Name ="PlayerList">
+                
+            </StackPanel>
+        </DockPanel>
+    </DockPanel>
+
+</Window>
