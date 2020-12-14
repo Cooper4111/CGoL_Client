@@ -38,7 +38,10 @@ namespace ClientApp
             }
             get
             {
-                lock (UGlocker) { return upcomingGeneration; }
+                lock (UGlocker) {
+                    int[] dst = new int[upcomingGeneration.Length];
+                    System.Buffer.BlockCopy(upcomingGeneration, 0, dst, 0, upcomingGeneration.Length);
+                    return upcomingGeneration; }
             }
         }
 
@@ -46,8 +49,8 @@ namespace ClientApp
         {
             try
             {
-                GTCDialogue = new GolTcpClient();
-                clientDialogueThread = new Thread(GTCDialogue.ServerDialog);
+                GTCDialogue                       = new GolTcpClient();
+                clientDialogueThread              = new Thread(GTCDialogue.ServerDialog);
                 clientDialogueThread.IsBackground = true;
                 clientDialogueThread.Start(new EventWaitHandle[2] { gotDataFromServer, srvDialCtrl });
             }
@@ -60,8 +63,8 @@ namespace ClientApp
         {
             try
             {
-                GTCListener = new GolTcpClient();
-                clientListenThread = new Thread(GTCListener.ListenServer);
+                GTCListener                     = new GolTcpClient();
+                clientListenThread              = new Thread(GTCListener.ListenServer);
                 clientListenThread.IsBackground = true;
                 clientListenThread.Start();
             }
@@ -73,9 +76,9 @@ namespace ClientApp
 
         public static void RunFieldProcessor()
         {
-            FPCtrl = new AutoResetEvent(false);
-            FP = new FieldProcessor(FPCtrl);
-            Thread FPThread = new Thread(FP.Process);
+            FPCtrl                = new AutoResetEvent(false);
+            FP                    = new FieldProcessor(FPCtrl);
+            Thread FPThread       = new Thread(FP.Process);
             FPThread.IsBackground = true;
             FPThread.Start();
         }
@@ -85,10 +88,14 @@ namespace ClientApp
         }
         public static void Send2Srv(int x, int y, string gliderDir)
         {
+            if(gliderDir == null)
+            {
+                return;
+            }
             GTCDialogue.gliderDir = gliderDir;
-            GTCDialogue.structX = (int)(x - 15) / Settings.SqSide;
-            GTCDialogue.structY = (int)(y - 15) / Settings.SqSide;
-            GTCDialogue.Cmd = "struct";
+            GTCDialogue.structX   = (int)(x - 15) / Settings.SqSide;
+            GTCDialogue.structY   = (int)(y - 15) / Settings.SqSide;
+            GTCDialogue.Cmd       = "struct";
             srvDialCtrl.Set();
         }
         

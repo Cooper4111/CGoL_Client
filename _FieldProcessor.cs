@@ -21,19 +21,21 @@ namespace ClientApp
     class FieldProcessor
     {
         readonly Canvas CanvasField;
-        readonly Dictionary<int, Rectangle> cellDict;
+        readonly Dictionary<int, Rectangle> cellDict; // MAKE IT PROPERTY OR CLASS!!!!!!
         int sqSide;
         int FWidth;
         int FHeight;
         Dispatcher MainWinDisp;
         SolidColorBrush cellColor;
-        EventWaitHandle wh;
+        EventWaitHandle FPCtrl;
+        object dickLocker = new object();
+
         
         //      MAKE
         //       IT
         //   SINGLETONE
         //      !!!!
-        public FieldProcessor(EventWaitHandle wh)
+        public FieldProcessor(EventWaitHandle FPCtrl)
         {
             MainWinDisp      = Settings.MainWinDisp;
             this.FWidth      = Settings.FWidth;
@@ -42,26 +44,9 @@ namespace ClientApp
             cellDict         = new Dictionary<int, Rectangle>();
             sqSide           = Settings.SqSide;
             cellColor        = new SolidColorBrush(Color.FromArgb(0xFF,0x0,0xFF,0x0));
-            this.wh          = wh;
+            this.FPCtrl      = FPCtrl;
         }
 
-        public void Process()
-        {
-            while (true)
-            {
-                this.wh.WaitOne();
-                int[] hoo = ThreadMaster.UpcomingGeneration;
-                Apoptosis(hoo);
-                Growth(hoo);
-            }
-        }
-
-        int Crd2hash(int x, int y)
-        {
-            x = (x + FWidth) % FWidth;
-            y = (y + FHeight) % FHeight;
-            return x + y * FWidth;
-        }
         int[] Hash2crd(int h)
         {
             int x = h % FWidth;
@@ -69,14 +54,12 @@ namespace ClientApp
         }
 
         /// <param name="nextGen"> The array of hashed cell coordinates in upcoming generation </param>
-        /// <returns> HashSet with hashed coordinates of cells, that must die in upcoming generation </returns>
-        HashSet<int> GetCellsToDelete(int[] nextGen)=>
-            cellDict.Keys.Except(nextGen).ToHashSet<int>();
-        /// <param name="nextGen"> The array of hashed cell coordinates in upcoming generation </param>
         /// <returns> HashSet with hashed coordinates of cells, that must born in upcoming generation </returns
-        HashSet<int> GetCellsToBorn(int[] nextGen) =>
-            nextGen.Except(cellDict.Keys).ToHashSet<int>();
-
+        HashSet<int> GetCellsToBorn(int[] nextGen)
+        {
+            lock (dickLocker) { return nextGen.Except(cellDict.Keys).ToHashSet<int>(); }
+        }
+            
         void MakeRect(int hash)
         {
             int[] crd = Hash2crd(hash);
@@ -91,9 +74,27 @@ namespace ClientApp
                 CanvasField.Children.Add(rec);
                 Canvas.SetLeft(rec, crd[0] * sqSide);
                 Canvas.SetTop(rec, crd[1] * sqSide);
-                cellDict.Add(hash, rec);
+                lock(dickLocker)
+                {
+                    //cellDict.Add(hash, rec);
+                    cellDict[hash] = rec;     // More stable, but doesn't sove the problem
+                }
             },
             DispatcherPriority.Normal);
+        }
+        void Growth(int[] nextGen)
+        {
+            List<int> bar = GetCellsToBorn(nextGen).ToList();
+            foreach (int foo in bar)
+            {
+                MakeRect(foo);
+            }
+        }
+        /// <param name="nextGen"> The array of hashed cell coordinates in upcoming generation </param>
+        /// <returns> HashSet with hashed coordinates of cells, that must die in upcoming generation </returns>
+        HashSet<int> GetCellsToDelete(int[] nextGen)
+        {
+            lock (dickLocker) { return cellDict.Keys.Except(nextGen).ToHashSet<int>(); }
         }
         void DelRect(int hash)
         {
@@ -103,22 +104,29 @@ namespace ClientApp
             MainWinDisp.BeginInvoke((ThreadStart)delegate ()
             {
                 CanvasField.Children.Remove(rec);
-                cellDict.Remove(hash);
+                lock (dickLocker)
+                {
+                    cellDict.Remove(hash);
+                }
             },
             DispatcherPriority.Normal);
         }
-        void Growth(int[] hashArr)
+        void Apoptosis(int[] nextGen)
         {
-            foreach (int foo in GetCellsToBorn(hashArr))
-            {
-                MakeRect(foo);
-            }
-        }
-        void Apoptosis(int[] hashArr)
-        {
-            foreach(int foo in GetCellsToDelete(hashArr))
+            List<int> bar = GetCellsToDelete(nextGen).ToList();
+            foreach (int foo in bar)
             {
                 DelRect(foo);
+            }
+        }
+        public void Process()
+        {
+            while (true)
+            {
+                this.FPCtrl.WaitOne();
+                //int[] nextGen = ThreadMaster.UpcomingGeneration;
+                Apoptosis(ThreadMaster.UpcomingGeneration);
+                Growth(ThreadMaster.UpcomingGeneration);
             }
         }
     }

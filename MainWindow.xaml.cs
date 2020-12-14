@@ -17,9 +17,10 @@ namespace ClientApp
 {
     public partial class MainWindow : Window
     {
-        string gliderDir = "NW";
+        string gliderDir = null;
         public MainWindow()
         {
+            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
             InitializeComponent();
         }
 
