@@ -1,0 +1,10 @@
+TODO LIST
+
+0) Variety of structures
+1) Authorization
+2) Different cell color for each Player
+3) Parallel field processing (or chech does C# parallels it under the hood)
+4) Territory spots for each Player
+5) Score display for each Player
+6) Tech tree based on current static structs on Player's territory
+7) Upload structures from editor (BMP export?)
