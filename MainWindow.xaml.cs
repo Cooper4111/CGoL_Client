@@ -18,15 +18,17 @@ namespace ClientApp
     public partial class MainWindow : Window
     {
         string gliderDir = null;
+        string targetIP = "127.0.0.1";
         public MainWindow()
         {
             System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
             InitializeComponent();
         }
 
-        private void RUN_Btn(object sender, RoutedEventArgs e)
+        private void Connect(object sender, RoutedEventArgs e)
         {
-            ThreadMaster.RUN(field, this.Dispatcher);
+            MessageBox.Show("Connecting to " + targetIP);
+            ThreadMaster.RUN(field, this.Dispatcher, targetIP);
         }
 
         private void FieldClick(object sender, MouseButtonEventArgs e)
@@ -38,6 +40,11 @@ namespace ClientApp
         {
             RadioButton selectedRadio = (RadioButton)e.Source;
             gliderDir = selectedRadio.Content.ToString();
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            targetIP = IP_address.Text;
         }
     }
 }

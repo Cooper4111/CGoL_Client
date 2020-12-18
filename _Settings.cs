@@ -25,7 +25,7 @@ namespace ClientApp
         private static int fHeight = 0;
         private static Canvas canvasField        = null;
         private static Dispatcher mainWinDisp    = null;
-        private static SolidColorBrush cellColor = null; // TODO
+        //private static SolidColorBrush cellColor = null; // TODO
 
         public static Canvas CanvasField
         {

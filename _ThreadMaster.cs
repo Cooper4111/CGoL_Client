@@ -28,8 +28,10 @@ namespace ClientApp
         static EventWaitHandle FPCtrl;
         static EventWaitHandle srvDialCtrl;
         static EventWaitHandle gotDataFromServer;
+        static EventWaitHandle FPReady;
         static object UGlocker = new object();
         static int[] upcomingGeneration;
+        static string ServerIP = "127.0.0.1";
         public static int[] UpcomingGeneration
         {
             set
@@ -40,8 +42,8 @@ namespace ClientApp
             {
                 lock (UGlocker) {
                     int[] dst = new int[upcomingGeneration.Length];
-                    System.Buffer.BlockCopy(upcomingGeneration, 0, dst, 0, upcomingGeneration.Length);
-                    return upcomingGeneration; }
+                    System.Buffer.BlockCopy(upcomingGeneration, 0, dst, 0, upcomingGeneration.Length * sizeof(int));
+                    return dst; }
             }
         }
 
@@ -49,7 +51,7 @@ namespace ClientApp
         {
             try
             {
-                GTCDialogue                       = new GolTcpClient();
+                GTCDialogue                       = new GolTcpClient(ServerIP);
                 clientDialogueThread              = new Thread(GTCDialogue.ServerDialog);
                 clientDialogueThread.IsBackground = true;
                 clientDialogueThread.Start(new EventWaitHandle[2] { gotDataFromServer, srvDialCtrl });
@@ -63,10 +65,10 @@ namespace ClientApp
         {
             try
             {
-                GTCListener                     = new GolTcpClient();
+                GTCListener                     = new GolTcpClient(ServerIP);
                 clientListenThread              = new Thread(GTCListener.ListenServer);
                 clientListenThread.IsBackground = true;
-                clientListenThread.Start();
+                clientListenThread.Start(FPReady);
             }
             catch (Exception E)
             {
@@ -76,19 +78,17 @@ namespace ClientApp
 
         public static void RunFieldProcessor()
         {
-            FPCtrl                = new AutoResetEvent(false);
-            FP                    = new FieldProcessor(FPCtrl);
+            
+            FP                    = new FieldProcessorSimple(FPCtrl, FPReady);
             Thread FPThread       = new Thread(FP.Process);
             FPThread.IsBackground = true;
             FPThread.Start();
         }
-        public static void ResumeFieldProcessing()
-        {
+        public static void ResumeFieldProcessing() =>
             FPCtrl.Set();
-        }
         public static void Send2Srv(int x, int y, string gliderDir)
         {
-            if(gliderDir == null)
+            if(gliderDir == null || GTCDialogue == null)
             {
                 return;
             }
@@ -99,10 +99,13 @@ namespace ClientApp
             srvDialCtrl.Set();
         }
         
-        public static void RUN(Canvas field, Dispatcher D)
+        public static void RUN(Canvas field, Dispatcher D, string targetIP)
         {
-            srvDialCtrl          = new AutoResetEvent(false);
-            gotDataFromServer    = new AutoResetEvent(false);
+            FPCtrl               = new AutoResetEvent(false);
+            FPReady              = new AutoResetEvent(true);    // 
+            srvDialCtrl          = new AutoResetEvent(false);   // вынести это в соответствующие методы
+            gotDataFromServer    = new AutoResetEvent(false);   //
+            ServerIP             = targetIP;
             Settings.CanvasField = field;
             Settings.MainWinDisp = D;
             Settings.SqSide      = 5;
@@ -110,6 +113,7 @@ namespace ClientApp
             gotDataFromServer.WaitOne();
             RunNetClientListener();
             RunFieldProcessor();
+            
         }
     }
             
