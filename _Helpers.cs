@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace ClientApp
 {
+    abstract class FieldProcessor
+    {
+        abstract public void Process();
+    }
+
     class eventHandlerArr
     {
         private EventWaitHandle foo;

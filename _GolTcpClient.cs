@@ -7,27 +7,30 @@ using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Diagnostics;
 using System.Threading;
+using System.IO;
 
 namespace ClientApp
 {
     class GolTcpClient
     {
-        const int port = 8888;              // MOVE TO SETTINGS
-        const string address = "127.0.0.1"; // MOVE TO SETTINGS
+        const int port = 8888;
+        readonly string ServerIP;
         BinaryFormatter formatter;
         TcpClient client;
         NetCodes NetCode;
         NetworkStream stream;
         EventWaitHandle gotSettingsFromServer;
         EventWaitHandle srvDialCtrl;
+        EventWaitHandle FPReady;
         readonly object cmdLocker = new object();
         string cmd;
 
         public int structX = 0;
         public int structY = 0;
         public string gliderDir = "NE";
-        public GolTcpClient()
+        public GolTcpClient(string ServerIP)
         {
+            this.ServerIP = ServerIP;
             formatter = new BinaryFormatter();
             client    = null;
             NetCode   = NetCodes.getInst();
@@ -44,6 +47,7 @@ namespace ClientApp
                 lock (cmdLocker) { cmd = value; }
             }
         }
+        
         /// <summary>
         /// Accepts array of TWO <c>EventWaitHandles</c>.
         /// Zero elem signals about successful aquirance of settings from server.
@@ -52,11 +56,11 @@ namespace ClientApp
         /// <param name="HandlerArr"></param>
         public void ServerDialog(object HandlerArr)
         {
-            this.gotSettingsFromServer = ((EventWaitHandle[])HandlerArr)[0];
+            this.gotSettingsFromServer = ((EventWaitHandle[])HandlerArr)[0]; // Sets when gotSettingsFromServer
             this.srvDialCtrl           = ((EventWaitHandle[])HandlerArr)[1];
             try
             {
-                client      = new TcpClient(address, port);
+                client      = new TcpClient(ServerIP, port);
                 stream      = client.GetStream();
                 int msgCode = 0;
                 formatter.Serialize(stream, NetCode["dialogue"]);
@@ -99,36 +103,38 @@ namespace ClientApp
             }
         }
 
-        public void ListenServer()
+        public void ListenServer(object Handler)
         {
+            this.FPReady = (EventWaitHandle)Handler;
             try
             {
-                client = new TcpClient(address, port);
+                client = new TcpClient(ServerIP, port);
                 stream = client.GetStream();
                 formatter.Serialize(stream, NetCode["getStream"]);
-                byte[] rawData;
+                int bufferSize = 1024; //1073741824; // 1MB //Settings.FWidth * Settings.FHeight * 2; // Assuming there will be never more than 0.5 field size cells
+                byte[] dataBuffer;
                 int[] data;
+                int bytesCount;
+                dataBuffer = new byte[bufferSize];
                 while (true)
                 {
-                    /* 
-                        Расспараллелить потом нормально эту хуергу,
-                        чтобы он чанками по 1КБ отдавал и можно было обрабатывать
-                        предыдущий чанк, пока грузится текущий
-                        (Если будет поле 2000х1000 хотя бы на половину заселено -- это уже ~1МБ).
-                        Нет, сейчас так не работает. Наверное. Может сломаться, когда данные в два чанка залетят.
-                        А может и не сломаться. ¯\_(ツ)_/¯
-                    */
-                    rawData = new byte[1024];
-                    int bytesCount = 0;
+                    bytesCount = 0;
                     do
                     {
-                        bytesCount = stream.Read(rawData, 0, rawData.Length);
+                        int foo = stream.Read(dataBuffer, 0, sizeof(int));
+                        data = new int[sizeof(int)];
+                        Buffer.BlockCopy(dataBuffer, 0, data, 0, sizeof(int));
+
+                        dataBuffer = new byte[data[0]*sizeof(int)];
+                        bytesCount = stream.Read(dataBuffer, 0, dataBuffer.Length);
                         data = new int[bytesCount / sizeof(int)];
-                        Buffer.BlockCopy(rawData, 0, data, 0, bytesCount);
-                        ThreadMaster.UpcomingGeneration = data;
-                        ThreadMaster.ResumeFieldProcessing();
+                        Buffer.BlockCopy(dataBuffer, 0, data, 0, bytesCount);
                     }
                     while (stream.DataAvailable);
+                    // if (need_to_skip_frame) { data = new int[0]; } // and better do this before reading from stream
+                    ThreadMaster.UpcomingGeneration = data;
+                    FPReady.WaitOne();
+                    ThreadMaster.ResumeFieldProcessing();
                 }
             }
             catch (Exception ex)
