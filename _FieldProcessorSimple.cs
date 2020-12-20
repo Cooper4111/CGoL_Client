@@ -28,18 +28,15 @@ namespace ClientApp
         readonly int FWidth;
         Stack<Rectangle> rectStack;
         Dispatcher MainWinDisp;
-        SolidColorBrush cellColor;
 
         public FieldProcessorSimple(EventWaitHandle FPCtrl, EventWaitHandle FPReady)
         {
-            MainWinDisp      = Settings.MainWinDisp;
-            this.FWidth      = Settings.FWidth;
-            this.CanvasField = Settings.CanvasField;
-            rectStack        = new Stack<Rectangle>();
-            sqSide           = Settings.SqSide;
-            cellColor        = new SolidColorBrush(Color.FromArgb(0xFF,0x0,0xFF,0x0));
-            this.FPCtrl      = FPCtrl;
-            this.FPReady     = FPReady;
+            MainWinDisp  = Settings.MainWinDisp;
+            FWidth       = Settings.FWidth;
+            CanvasField  = Settings.CanvasField;
+            sqSide       = Settings.SqSide;
+            this.FPCtrl  = FPCtrl;
+            this.FPReady = FPReady;
 
         }
 
@@ -64,16 +61,26 @@ namespace ClientApp
                 },
                 DispatcherPriority.Normal);
         }
-        async Task<Stack<Rectangle>> InhabitField(int[] nextGen, SolidColorBrush localCellColor)
+        async Task<Stack<Rectangle>> InhabitCellColor(int[] nextGen)
         {
+            SolidColorBrush localCellColor;
             Stack<Rectangle> result = new Stack<Rectangle>();
 
-                
-                await MainWinDisp.BeginInvoke((ThreadStart)delegate ()
+            await MainWinDisp.BeginInvoke((ThreadStart)delegate ()
+            {
+                int curIndex = 0;
+                int endIndex = 0;
+
+                while (curIndex < nextGen.Length)
                 {
-                    for (int i = 0; i < nextGen.Length; i++)
+                    endIndex += nextGen[curIndex];
+                    curIndex++;
+                    byte[] byteColor = nextGen[curIndex].ToByte();
+                    localCellColor = new SolidColorBrush(Color.FromArgb(byteColor[0], byteColor[1], byteColor[2], byteColor[3]));
+                    curIndex++;
+                    while (curIndex < endIndex)
                     {
-                        int[] crd = Hash2crd(nextGen[i]);
+                        int[] crd = Hash2crd(nextGen[curIndex]);
                         Rectangle rect = new Rectangle
                         {
                             Width = sqSide,
@@ -84,25 +91,24 @@ namespace ClientApp
                         Canvas.SetLeft(rect, crd[0] * sqSide);
                         Canvas.SetTop(rect, crd[1] * sqSide);
                         result.Push(rect);
-                        //cellDict.Add(hash, rec);
-                        //rectListNew.Add(rect);     // More stable, but doesn't solve the problem
+                        curIndex++;
                     }
-                },
-                DispatcherPriority.Normal);
-
+                }
+            },
+            DispatcherPriority.Normal);
             return result;
         }
+
         override public void Process()
         {
+            rectStack = new Stack<Rectangle>();
             while (true)
             {
-                PerfMon.fieldProcessing.Start();
-
                 this.FPCtrl.WaitOne();
                 int[] nextGen = ThreadMaster.UpcomingGeneration;
                 if (nextGen.Length != 0){
                     ClearFieldAsync(rectStack);
-                    rectStack = InhabitField(nextGen, cellColor).Result;
+                    rectStack = InhabitCellColor(nextGen).Result;
                 }
                 FPReady.Set();
             }

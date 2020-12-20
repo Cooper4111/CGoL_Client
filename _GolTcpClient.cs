@@ -17,7 +17,7 @@ namespace ClientApp
         readonly string ServerIP;
         BinaryFormatter formatter;
         TcpClient client;
-        NetCodes NetCode;
+        NetCodes NetCodes;
         NetworkStream stream;
         EventWaitHandle gotSettingsFromServer;
         EventWaitHandle srvDialCtrl;
@@ -31,9 +31,9 @@ namespace ClientApp
         public GolTcpClient(string ServerIP)
         {
             this.ServerIP = ServerIP;
-            formatter = new BinaryFormatter();
-            client    = null;
-            NetCode   = NetCodes.getInst();
+            formatter     = new BinaryFormatter();
+            client        = null;
+            NetCodes      = NetCodes.getInst();
 
         }
         public string Cmd
@@ -63,21 +63,26 @@ namespace ClientApp
                 client      = new TcpClient(ServerIP, port);
                 stream      = client.GetStream();
                 int msgCode = 0;
-                formatter.Serialize(stream, NetCode["dialogue"]);
+                formatter.Serialize(stream, NetCodes["dialogue"]);
                 msgCode     = (int)formatter.Deserialize(stream);
-                if (msgCode == NetCode["connectionSuccessful"])
+                if (msgCode == NetCodes["connectionSuccessful"])
                 {
-                    formatter.Serialize(stream, NetCode["authorizationRequest"]);
+                    formatter.Serialize(stream, NetCodes["authorizationRequest"]);
                     msgCode = (int)formatter.Deserialize(stream);
-                    if (msgCode == NetCode["authorizationBegin"])
+                    if (msgCode == NetCodes["authorizationBegin"])
                     {
                         string loginPass     = Settings.login + " " + Settings.pass;
                         byte[] byteLoginPass = Encoding.Unicode.GetBytes(loginPass);
                         stream.Write(byteLoginPass, 0, byteLoginPass.Length);
                         msgCode = (int)formatter.Deserialize(stream);
-                        if (msgCode == NetCode["authorizationSuccessful"])
+                        if (msgCode == NetCodes["authorizationSuccessful"])
                         {
                             // Further code here
+                        }
+                        else
+                        {
+                            // AuthFailedMsg to client
+                            // Retry
                         }
                     }
                     else
@@ -85,7 +90,7 @@ namespace ClientApp
                         // AuthErrorMsg to client
                         // Retry
                     }
-                    formatter.Serialize(stream, NetCode["getFieldDimensions"]);
+                    formatter.Serialize(stream, NetCodes["getFieldDimensions"]);
                     int[] dim = (int[])formatter.Deserialize(stream);
                     Settings.FWidth  = dim[0];
                     Settings.FHeight = dim[1];
@@ -98,9 +103,9 @@ namespace ClientApp
                         {
                             if(Cmd == "struct")
                             {
-                                formatter.Serialize(stream, NetCode[cmd]);
+                                formatter.Serialize(stream, NetCodes[cmd]);
                                 msgCode = (int)formatter.Deserialize(stream);
-                                if (msgCode == NetCode["acceptStruct"])
+                                if (msgCode == NetCodes["acceptStruct"])
                                 {
                                     int[] glider = Structs.Glider(structX, structY, gliderDir);
                                     formatter.Serialize(stream, glider);
@@ -133,27 +138,25 @@ namespace ClientApp
             {
                 client = new TcpClient(ServerIP, port);
                 stream = client.GetStream();
-                formatter.Serialize(stream, NetCode["getStream"]);
-                int bufferSize = 1024; //1073741824; // 1MB //Settings.FWidth * Settings.FHeight * 2; // Assuming there will be never more than 0.5 field size cells
-                byte[] dataBuffer;
-                int[] data;
-                int bytesCount;
-                dataBuffer = new byte[bufferSize];
+                formatter.Serialize(stream, NetCodes["getStream"]);
+                int bufferSize    = sizeof(int);
+                byte[] dataBuffer = new byte[bufferSize];
+                int[] data        = { };
+                int[] metaData    = { };
+                int bytesCount    = 0;
                 while (true)
                 {
-                    bytesCount = 0;
-                    do
-                    {
-                        int foo = stream.Read(dataBuffer, 0, sizeof(int));
-                        data = new int[sizeof(int)];
-                        Buffer.BlockCopy(dataBuffer, 0, data, 0, sizeof(int));
+                    // get message length in bytes
+                    stream.Read(dataBuffer, 0, sizeof(int));
+                    metaData = new int[1];
+                    Buffer.BlockCopy(dataBuffer, 0, metaData, 0, sizeof(int));
 
-                        dataBuffer = new byte[data[0]*sizeof(int)];
-                        bytesCount = stream.Read(dataBuffer, 0, dataBuffer.Length);
-                        data = new int[bytesCount / sizeof(int)];
-                        Buffer.BlockCopy(dataBuffer, 0, data, 0, bytesCount);
-                    }
-                    while (stream.DataAvailable);
+                    // get message
+                    dataBuffer = new byte[metaData[0] * sizeof(int)];
+                    bytesCount = stream.Read(dataBuffer, 0, dataBuffer.Length);
+                    data = new int[bytesCount / sizeof(int)];
+                    Buffer.BlockCopy(dataBuffer, 0, data, 0, bytesCount);
+
                     // if (need_to_skip_frame) { data = new int[0]; } // and better do this before reading from stream
                     ThreadMaster.UpcomingGeneration = data;
                     FPReady.WaitOne();
