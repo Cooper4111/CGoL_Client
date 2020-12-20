@@ -31,7 +31,7 @@ namespace ClientApp
         private void Connect(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Connecting to " + targetIP);
-            ThreadMaster.RUN(field, this.Dispatcher, targetIP); // , login, password);
+            ThreadMaster.RUN(field, this.Dispatcher, targetIP, login, password);
         }
 
         private void FieldClick(object sender, MouseButtonEventArgs e)

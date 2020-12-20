@@ -35,7 +35,7 @@ namespace ClientApp
     }
     public class NetCodes
     {
-
+        // Singletone
         private static Dictionary<string, int> dict;
         private static NetCodes instance;
 
@@ -43,14 +43,17 @@ namespace ClientApp
         {
             dict = new Dictionary<string, int>
             {
-                { "dialogue",             1 },
-                { "connectionSuccessful", 2 },
-                { "getFieldDimensions",   3 },
-                { "getStream",            4 },
-                { "login",                5 },
-                { "loginSuccesscful",     6 },
-                { "struct",               7 },
-                { "acceptStruct",         8 }
+                { "wrongConnectionCode",    -1 },
+                { "dialogue",                1 },
+                { "connectionSuccessful",    2 },
+                { "getFieldDimensions",      3 },
+                { "getStream",               4 },
+                { "authorizationRequest",    5 },
+                { "authorizationBegin",      6 },
+                { "authorizationSuccessful", 7 },
+                { "authorizationFailed",     8 },
+                { "struct",                  9 },
+                { "acceptStruct",            10},
             };
         }
 

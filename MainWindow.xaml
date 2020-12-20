@@ -28,8 +28,8 @@
                 
             </StackPanel>
             <StackPanel DockPanel.Dock="Bottom" Name ="Connection">
-                <TextBox MaxLength="15" Name="Login"      TextChanged="GetLogin">Login</TextBox>
-                <TextBox MaxLength="15" Name="Password"   TextChanged="GetPass">Password</TextBox>
+                <TextBox MaxLength="15" Name="Login"      TextChanged="GetLogin">CCorax</TextBox>
+                <TextBox MaxLength="15" Name="Password"   TextChanged="GetPass">CCorax</TextBox>
                 <TextBox MaxLength="15" Name="IP_address" TextChanged="GetIP">127.0.0.1</TextBox>
                 <Button Name ="CONNETCT"  Background="Black" TextElement.Foreground="#00ff00" Content="CONNETCT" Click="Connect"/>
             </StackPanel>

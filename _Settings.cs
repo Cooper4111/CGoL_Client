@@ -20,6 +20,8 @@ namespace ClientApp
 {
     static class Settings
     {
+        public static string login = "";
+        public static string pass  = "";
         private static int sqSide  = 0;
         private static int fWidth  = 0;
         private static int fHeight = 0;

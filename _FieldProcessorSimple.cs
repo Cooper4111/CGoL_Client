@@ -64,7 +64,7 @@ namespace ClientApp
                 },
                 DispatcherPriority.Normal);
         }
-        async Task<Stack<Rectangle>> InhabitField(int[] nextGen)
+        async Task<Stack<Rectangle>> InhabitField(int[] nextGen, SolidColorBrush localCellColor)
         {
             Stack<Rectangle> result = new Stack<Rectangle>();
 
@@ -78,7 +78,7 @@ namespace ClientApp
                         {
                             Width = sqSide,
                             Height = sqSide,
-                            Fill = cellColor
+                            Fill = localCellColor
                         };
                         CanvasField.Children.Add(rect);
                         Canvas.SetLeft(rect, crd[0] * sqSide);
@@ -102,7 +102,7 @@ namespace ClientApp
                 int[] nextGen = ThreadMaster.UpcomingGeneration;
                 if (nextGen.Length != 0){
                     ClearFieldAsync(rectStack);
-                    rectStack = InhabitField(nextGen).Result;
+                    rectStack = InhabitField(nextGen, cellColor).Result;
                 }
                 FPReady.Set();
             }

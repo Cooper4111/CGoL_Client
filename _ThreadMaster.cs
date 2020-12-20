@@ -18,6 +18,13 @@ using System.Diagnostics;
 
 namespace ClientApp
 {
+    class PlayerCells
+    {
+        static byte[] color;
+        static int[] cells;
+    }
+
+
     static class ThreadMaster
     {
         static GolTcpClient GTCListener;
@@ -32,6 +39,21 @@ namespace ClientApp
         static object UGlocker = new object();
         static int[] upcomingGeneration;
         static string ServerIP = "127.0.0.1";
+        public static PlayerCells[] upcomingGenerationColored;
+        public static PlayerCells[] UpcomingGenerationColored
+        {
+            set
+            {
+                lock (UGlocker) { upcomingGenerationColored = value; }
+            }
+            get
+            {
+                lock (UGlocker)
+                {
+                    return upcomingGenerationColored;
+                }
+            }
+        }
         public static int[] UpcomingGeneration
         {
             set
@@ -46,6 +68,8 @@ namespace ClientApp
                     return dst; }
             }
         }
+
+
 
         static void RunNetClientDialogue()
         {
@@ -99,7 +123,7 @@ namespace ClientApp
             srvDialCtrl.Set();
         }
         
-        public static void RUN(Canvas field, Dispatcher D, string targetIP)
+        public static void RUN(Canvas field, Dispatcher D, string targetIP, string login, string password)
         {
             FPCtrl               = new AutoResetEvent(false);
             FPReady              = new AutoResetEvent(true);    // 
@@ -109,6 +133,8 @@ namespace ClientApp
             Settings.CanvasField = field;
             Settings.MainWinDisp = D;
             Settings.SqSide      = 5;
+            Settings.login       = login;
+            Settings.pass        = password;
             RunNetClientDialogue();
             gotDataFromServer.WaitOne();
             RunNetClientListener();
