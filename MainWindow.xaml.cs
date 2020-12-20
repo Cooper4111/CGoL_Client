@@ -18,7 +18,10 @@ namespace ClientApp
     public partial class MainWindow : Window
     {
         string gliderDir = null;
-        string targetIP = "127.0.0.1";
+        string targetIP  = "127.0.0.1";
+        string login     = "";
+        string password  = "";
+
         public MainWindow()
         {
             System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
@@ -28,7 +31,7 @@ namespace ClientApp
         private void Connect(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Connecting to " + targetIP);
-            ThreadMaster.RUN(field, this.Dispatcher, targetIP);
+            ThreadMaster.RUN(field, this.Dispatcher, targetIP, login, password);
         }
 
         private void FieldClick(object sender, MouseButtonEventArgs e)
@@ -42,9 +45,17 @@ namespace ClientApp
             gliderDir = selectedRadio.Content.ToString();
         }
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void GetIP(object sender, TextChangedEventArgs e)
         {
             targetIP = IP_address.Text;
+        }
+        private void GetPass(object sender, TextChangedEventArgs e)
+        {
+            password = Password.Text;
+        }
+        private void GetLogin(object sender, TextChangedEventArgs e)
+        {
+            login = Login.Text;
         }
     }
 }

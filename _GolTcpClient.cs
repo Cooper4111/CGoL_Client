@@ -67,6 +67,24 @@ namespace ClientApp
                 msgCode     = (int)formatter.Deserialize(stream);
                 if (msgCode == NetCode["connectionSuccessful"])
                 {
+                    formatter.Serialize(stream, NetCode["authorizationRequest"]);
+                    msgCode = (int)formatter.Deserialize(stream);
+                    if (msgCode == NetCode["authorizationBegin"])
+                    {
+                        string loginPass     = Settings.login + " " + Settings.pass;
+                        byte[] byteLoginPass = Encoding.Unicode.GetBytes(loginPass);
+                        stream.Write(byteLoginPass, 0, byteLoginPass.Length);
+                        msgCode = (int)formatter.Deserialize(stream);
+                        if (msgCode == NetCode["authorizationSuccessful"])
+                        {
+                            // Further code here
+                        }
+                    }
+                    else
+                    {
+                        // AuthErrorMsg to client
+                        // Retry
+                    }
                     formatter.Serialize(stream, NetCode["getFieldDimensions"]);
                     int[] dim = (int[])formatter.Deserialize(stream);
                     Settings.FWidth  = dim[0];
@@ -90,6 +108,11 @@ namespace ClientApp
                             }
                         }
                     }
+                }
+                else
+                {
+                    // ConnErrorMsg to client
+                    // Retry
                 }
             }
             catch (Exception ex)
