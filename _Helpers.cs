@@ -11,7 +11,6 @@ namespace ClientApp
     {
         abstract public void Process();
     }
-
     class eventHandlerArr
     {
         private EventWaitHandle foo;
@@ -74,7 +73,6 @@ namespace ClientApp
                 dict.Add(key, value);
         }
     }
-
     public static class Helpers
     {
         public static int Crd2hash(int x, int y)
