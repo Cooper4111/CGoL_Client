@@ -142,20 +142,20 @@ namespace ClientApp
                 int bufferSize    = sizeof(int);
                 byte[] dataBuffer = new byte[bufferSize];
                 int[] data        = { };
-                int[] metaData    = { };
-                int bytesCount    = 0;
+                int[] msgLen      = { }; // array with one elem -- length in bytes
+                int chunkLen      = 0;
                 while (true)
                 {
                     // get message length in bytes
                     stream.Read(dataBuffer, 0, sizeof(int));
-                    metaData = new int[1];
-                    Buffer.BlockCopy(dataBuffer, 0, metaData, 0, sizeof(int));
+                    msgLen = new int[1];
+                    Buffer.BlockCopy(dataBuffer, 0, msgLen, 0, sizeof(int));
 
                     // get message
-                    dataBuffer = new byte[metaData[0] * sizeof(int)];
-                    bytesCount = stream.Read(dataBuffer, 0, dataBuffer.Length);
-                    data = new int[bytesCount / sizeof(int)];
-                    Buffer.BlockCopy(dataBuffer, 0, data, 0, bytesCount);
+                    dataBuffer = new byte[msgLen[0] * sizeof(int)];
+                    chunkLen = stream.Read(dataBuffer, 0, dataBuffer.Length);
+                    data = new int[chunkLen / sizeof(int)];
+                    Buffer.BlockCopy(dataBuffer, 0, data, 0, chunkLen);
 
                     // if (need_to_skip_frame) { data = new int[0]; } // and better do this before reading from stream
                     ThreadMaster.UpcomingGeneration = data;

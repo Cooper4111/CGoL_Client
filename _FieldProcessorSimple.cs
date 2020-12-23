@@ -73,7 +73,7 @@ namespace ClientApp
 
                 while (curIndex < nextGen.Length)
                 {
-                    endIndex += nextGen[curIndex];
+                    endIndex += nextGen[curIndex] + 2;
                     curIndex++;
                     byte[] byteColor = nextGen[curIndex].ToByte();
                     localCellColor = new SolidColorBrush(Color.FromArgb(byteColor[0], byteColor[1], byteColor[2], byteColor[3]));
@@ -109,6 +109,7 @@ namespace ClientApp
                 if (nextGen.Length != 0){
                     ClearFieldAsync(rectStack);
                     rectStack = InhabitCellColor(nextGen).Result;
+                    // try use two threads for clearing and inhabitating 
                 }
                 FPReady.Set();
             }
