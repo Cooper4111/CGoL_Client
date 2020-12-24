@@ -90,7 +90,7 @@ namespace ClientApp
             try
             {
                 GTCListener                     = new GolTcpClient(ServerIP);
-                clientListenThread              = new Thread(GTCListener.ListenServer);
+                clientListenThread              = new Thread(GTCListener.ListenServerBroadcast);
                 clientListenThread.IsBackground = true;
                 clientListenThread.Start(FPReady);
             }

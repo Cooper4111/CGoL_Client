@@ -119,7 +119,7 @@ namespace ClientApp
         {
             while (true)
             {
-                this.FPCtrl.WaitOne();
+                FPCtrl.WaitOne();
                 int[] nextGen = ThreadMaster.UpcomingGeneration;
                 if (nextGen.Length != 0)
                 {
