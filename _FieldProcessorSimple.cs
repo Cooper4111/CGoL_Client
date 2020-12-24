@@ -83,9 +83,9 @@ namespace ClientApp
                         int[] crd = Hash2crd(nextGen[curIndex]);
                         Rectangle rect = new Rectangle
                         {
-                            Width = sqSide,
+                            Width  = sqSide,
                             Height = sqSide,
-                            Fill = localCellColor
+                            Fill   = localCellColor
                         };
                         CanvasField.Children.Add(rect);
                         Canvas.SetLeft(rect, crd[0] * sqSide);

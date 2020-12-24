@@ -131,7 +131,7 @@ namespace ClientApp
             }
         }
 
-        public void ListenServer(object Handler)
+        public void ListenServerBroadcast(object Handler)
         {
             this.FPReady = (EventWaitHandle)Handler;
             try
