@@ -31,7 +31,7 @@ namespace ClientApp
         private void Connect(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Connecting to " + targetIP);
-            ThreadMaster.RUN(field, this.Dispatcher, targetIP, login, password);
+            ThreadMaster.RUN(field, Dispatcher, targetIP, login, password);
         }
 
         private void FieldClick(object sender, MouseButtonEventArgs e)
@@ -42,7 +42,7 @@ namespace ClientApp
         private void RadioButton_Click(object sender, RoutedEventArgs e)
         {
             RadioButton selectedRadio = (RadioButton)e.Source;
-            gliderDir = selectedRadio.Content.ToString();
+            gliderDir = selectedRadio.Content.ToString(); // gliderDir в отдельный класс вне WFP
         }
 
         private void GetIP(object sender, TextChangedEventArgs e)
