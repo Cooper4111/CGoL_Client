@@ -18,8 +18,7 @@ using System.Diagnostics;
 
 namespace ClientApp
 {
-    // This one has lower performance comparing to ComplexFB, but is more stable.
-    class FieldProcessorSimple : FieldProcessor
+    class Display
     {
         readonly EventWaitHandle FPCtrl;
         readonly EventWaitHandle FPReady;
@@ -29,13 +28,13 @@ namespace ClientApp
         Stack<Rectangle> rectStack;
         Dispatcher MainWinDisp;
 
-        public FieldProcessorSimple(EventWaitHandle FPCtrl, EventWaitHandle FPReady)
+        public Display(EventWaitHandle FPCtrl, EventWaitHandle FPReady)
         {
-            MainWinDisp  = Settings.MainWinDisp;
-            FWidth       = Settings.FWidth;
-            CanvasField  = Settings.CanvasField;
-            sqSide       = Settings.SqSide;
-            this.FPCtrl  = FPCtrl;
+            MainWinDisp = Settings.MainWinDisp;
+            FWidth = Settings.FWidth;
+            CanvasField = Settings.CanvasField;
+            sqSide = Settings.SqSide;
+            this.FPCtrl = FPCtrl;
             this.FPReady = FPReady;
 
         }
@@ -52,13 +51,13 @@ namespace ClientApp
                 return;
             int stackCount = rectStackOld.Count;
             await MainWinDisp.BeginInvoke((ThreadStart)delegate ()
+            {
+                for (int i = 0; i < stackCount; i++)
                 {
-                    for (int i = 0; i < stackCount; i++)
-                    {
-                        rect = rectStackOld.Pop();
-                        CanvasField.Children.Remove(rect);
-                    }
-                },
+                    rect = rectStackOld.Pop();
+                    CanvasField.Children.Remove(rect);
+                }
+            },
                 DispatcherPriority.Normal);
         }
         async Task<Stack<Rectangle>> InhabitCellColor(int[] nextGen)
@@ -83,9 +82,9 @@ namespace ClientApp
                         int[] crd = Hash2crd(nextGen[curIndex]);
                         Rectangle rect = new Rectangle
                         {
-                            Width  = sqSide,
+                            Width = sqSide,
                             Height = sqSide,
-                            Fill   = localCellColor
+                            Fill = localCellColor
                         };
                         CanvasField.Children.Add(rect);
                         Canvas.SetLeft(rect, crd[0] * sqSide);
@@ -99,14 +98,15 @@ namespace ClientApp
             return result;
         }
 
-        override public void Process()
+        public void Process()
         {
             rectStack = new Stack<Rectangle>();
             while (true)
             {
                 FPCtrl.WaitOne();
                 int[] nextGen = ThreadMaster.UpcomingGeneration;
-                if (nextGen.Length != 0){
+                if (nextGen.Length != 0)
+                {
                     ClearFieldAsync(rectStack);
                     rectStack = InhabitCellColor(nextGen).Result;
                     // try use two threads for clearing and inhabitating 

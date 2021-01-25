@@ -79,6 +79,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="_Display.cs" />
     <Compile Include="_FieldProcessorComplex.cs" />
     <Compile Include="_PerfMon.cs" />
     <Compile Include="_GolTcpClient.cs" />

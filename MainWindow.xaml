@@ -7,6 +7,38 @@
         mc:Ignorable="d"
         Background="#FF606060"
         Title="MainWindow" Width="1024" Height="768" MinWidth="1024" MinHeight="768">
+
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Style.Setters>
+                <Setter Property="FontSize" Value="13" />
+                <!--Setter Property="Control.FontFamily" Value="Consolas" /-->
+                <Setter Property="Control.Background" Value="#FF101010" />
+                <Setter Property="Control.Foreground" Value="#FF00FF00" />
+                <!--Following crap is required somehow by WPF. See: https://stackoverflow.com/questions/20073294/change-color-of-button-when-mouse-is-over -->
+                <!-- <CRAP> -->
+                <Setter Property="Template">  
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <!-- </CRAP> -->
+            </Style.Setters>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF022000"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#FF000000"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <DockPanel>
         <Grid DockPanel.Dock="Left" Margin="5" Background="#FF404040">
             <Grid DockPanel.Dock="Left" Margin="5" Background="#FF202020">
@@ -31,7 +63,7 @@
                 <TextBox MaxLength="15" Name="Login"      TextChanged="GetLogin">CCorax</TextBox>
                 <TextBox MaxLength="15" Name="Password"   TextChanged="GetPass">CCorax</TextBox>
                 <TextBox MaxLength="15" Name="IP_address" TextChanged="GetIP">127.0.0.1</TextBox>
-                <Button Name ="CONNETCT"  Background="Black" TextElement.Foreground="#00ff00" Content="CONNETCT" Click="Connect"/>
+                <Button Name ="CONNETCT" Content="CONNETCT" Click="Connect"/>
             </StackPanel>
             <StackPanel DockPanel.Dock="Top" Name ="Null">
             </StackPanel>
